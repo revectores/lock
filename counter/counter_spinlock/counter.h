@@ -1,8 +1,8 @@
 #include "spinlock.h"
 
 typedef struct __counter_t {
-	int value;
-	spinlock_t lock;
+    int value;
+    spinlock_t lock;
 } counter_t;
 
 void counter_init(counter_t *c, int value);
