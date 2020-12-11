@@ -1,3 +1,5 @@
+#pragma once
+
 typedef unsigned int uint;
 
 typedef struct __spinlock_t {
