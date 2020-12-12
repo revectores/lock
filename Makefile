@@ -1,6 +1,24 @@
-# LOCK_NAME = spinlock
-LOCK_NAME = pthread_mutex
-LOCK_PATH = lock/$(LOCK_NAME)
+# LOCK_IMPL = spinlock
+# LOCK_IMPL = pthread_mutex
+LOCK_IMPL = yield_mutex
+# LOCK_IMPL = futex_mutex
+
+
+LOCK_PATH = lock/$(LOCK_IMPL)
+
+ifeq ($(LOCK_IMPL), spinlock)
+	LOCK_NAME = spinlock
+else ifeq ($(LOCK_IMPL), pthread_mutex)
+	LOCK_NAME = pthread_mutex
+else
+	LOCK_NAME = mutex
+endif
+
+ifneq ($(LOCK_NAME), pthread_mutex)
+	LOCK_OBJ = $(LOCK_PATH)/$(LOCK_NAME).o
+endif
+
+
 COUNTER_PATH = counter/counter_$(LOCK_NAME)
 LIST_PATH = list/list_$(LOCK_NAME)
 HASH_PATH = hash/hash_$(LOCK_NAME)
@@ -9,9 +27,6 @@ TIMING_PATH = timing
 CC = gcc -std=gnu99 -pthread -I $(LOCK_PATH) -I $(COUNTER_PATH) -I $(LIST_PATH) -I $(HASH_PATH) -I $(TIMING_PATH)
 OBJECTS = $(TIMING_PATH)/timing_counter_increment $(TIMING_PATH)/timing_list_insert $(TIMING_PATH)/timing_hash_insert
 
-ifneq ($(LOCK_NAME), pthread_mutex)
-	LOCK_OBJ = $(LOCK_PATH)/$(LOCK_NAME).o
-endif
 
 
 .PHONY: all
@@ -42,6 +57,7 @@ $(LIB_PATH)/hash.so: $(HASH_PATH)/hash.o $(LOCK_OBJ) $(LIST_PATH)/list.o
 
 ifdef LOCK_OBJ
 $(LOCK_OBJ): $(LOCK_PATH)/$(LOCK_NAME).c
+	$(CC) -o $(LOCK_PATH)/$(LOCK_NAME).o -c -fPIC $(LOCK_PATH)/$(LOCK_NAME).c
 endif
 
 $(COUNTER_PATH)/counter.o: $(COUNTER_PATH)/counter.c
