@@ -4,8 +4,9 @@ LOCK_PATH = lock/$(LOCK_NAME)
 COUNTER_PATH = counter/counter_$(LOCK_NAME)
 LIST_PATH = list/list_$(LOCK_NAME)
 HASH_PATH = hash/hash_$(LOCK_NAME)
+LIB_PATH = lib
 TIMING_PATH = timing
-CC = gcc -I $(LOCK_PATH) -I $(COUNTER_PATH) -I $(LIST_PATH) -I $(HASH_PATH) -I $(TIMING_PATH)
+CC = gcc -std=gnu99 -pthread -I $(LOCK_PATH) -I $(COUNTER_PATH) -I $(LIST_PATH) -I $(HASH_PATH) -I $(TIMING_PATH)
 OBJECTS = $(TIMING_PATH)/timing_counter_increment $(TIMING_PATH)/timing_list_insert $(TIMING_PATH)/timing_hash_insert
 
 ifneq ($(LOCK_NAME), pthread_mutex)
@@ -18,35 +19,42 @@ endif
 
 all: $(OBJECTS)
 
-$(TIMING_PATH)/timing_counter_increment: $(TIMING_PATH)/timing_counter_increment.c $(COUNTER_PATH)/counter.so $(TIMING_PATH)/timing.so
-	$(CC) -lcounter -L $(COUNTER_PATH) -ltiming -L $(TIMING_PATH) -o $(TIMING_PATH)/timing_counter_increment $(TIMING_PATH)/timing_counter_increment.c
+$(TIMING_PATH)/timing_counter_increment: $(TIMING_PATH)/timing_counter_increment.c $(LIB_PATH)/counter.so $(LIB_PATH)/timing.so
+	$(CC) -L $(LIB_PATH) -lcounter -ltiming -o $(TIMING_PATH)/timing_counter_increment $(TIMING_PATH)/timing_counter_increment.c
 
-$(TIMING_PATH)/timing_list_insert: $(TIMING_PATH)/timing_list_insert.c $(LIST_PATH)/list.so $(TIMING_PATH)/timing.so
-	$(CC) -llist -L $(LIST_PATH) -ltiming -L $(TIMING_PATH) -o $(TIMING_PATH)/timing_list_insert $(TIMING_PATH)/timing_list_insert.c
+$(TIMING_PATH)/timing_list_insert: $(TIMING_PATH)/timing_list_insert.c $(LIB_PATH)/list.so $(LIB_PATH)/timing.so
+	$(CC) -L $(LIB_PATH) -llist -ltiming -o $(TIMING_PATH)/timing_list_insert $(TIMING_PATH)/timing_list_insert.c
 
-$(TIMING_PATH)/timing_hash_insert: $(TIMING_PATH)/timing_hash_insert.c $(HASH_PATH)/hash.so $(TIMING_PATH)/timing.so
-	$(CC) -lhash -L $(HASH_PATH) -ltiming -L $(TIMING_PATH) -o $(TIMING_PATH)/timing_hash_insert $(TIMING_PATH)/timing_hash_insert.c
+$(TIMING_PATH)/timing_hash_insert: $(TIMING_PATH)/timing_hash_insert.c $(LIB_PATH)/hash.so $(LIB_PATH)/timing.so
+	$(CC) -L $(LIB_PATH) -lhash -ltiming -o $(TIMING_PATH)/timing_hash_insert $(TIMING_PATH)/timing_hash_insert.c
 
-$(TIMING_PATH)/timing.so: $(TIMING_PATH)/timing.o
-	$(CC) -shared -o $(TIMING_PATH)/libtiming.so $(TIMING_PATH)/timing.o
+$(LIB_PATH)/timing.so: $(TIMING_PATH)/timing.o
+	$(CC) -shared -o $(LIB_PATH)/libtiming.so $(TIMING_PATH)/timing.o
 
-$(COUNTER_PATH)/counter.so: $(COUNTER_PATH)/counter.o $(LOCK_OBJ)
-	$(CC) -shared -o $(COUNTER_PATH)/libcounter.so $(COUNTER_PATH)/counter.o $(LOCK_OBJ)
+$(LIB_PATH)/counter.so: $(COUNTER_PATH)/counter.o $(LOCK_OBJ)
+	$(CC) -shared -o $(LIB_PATH)/libcounter.so $(COUNTER_PATH)/counter.o $(LOCK_OBJ)
 
-$(LIST_PATH)/list.so: $(LIST_PATH)/list.o $(LOCK_OBJ)
-	$(CC) -shared -o $(LIST_PATH)/liblist.so $(LIST_PATH)/list.o $(LOCK_OBJ)
+$(LIB_PATH)/list.so: $(LIST_PATH)/list.o $(LOCK_OBJ)
+	$(CC) -shared -o $(LIB_PATH)/liblist.so $(LIST_PATH)/list.o $(LOCK_OBJ)
 
-$(HASH_PATH)/hash.so: $(HASH_PATH)/hash.o $(LOCK_OBJ) $(LIST_PATH)/list.o
-	$(CC) -shared -o $(HASH_PATH)/libhash.so $(HASH_PATH)/hash.o $(LOCK_OBJ) $(LIST_PATH)/list.o
+$(LIB_PATH)/hash.so: $(HASH_PATH)/hash.o $(LOCK_OBJ) $(LIST_PATH)/list.o
+	$(CC) -shared -o $(LIB_PATH)/libhash.so $(HASH_PATH)/hash.o $(LOCK_OBJ) $(LIST_PATH)/list.o
 
 ifdef LOCK_OBJ
-	$(LOCK_OBJ): $(LOCK_PATH)/$(LOCK_NAME).c
+$(LOCK_OBJ): $(LOCK_PATH)/$(LOCK_NAME).c
 endif
 
 $(COUNTER_PATH)/counter.o: $(COUNTER_PATH)/counter.c
+	$(CC) -o $(COUNTER_PATH)/counter.o -c -fPIC $(COUNTER_PATH)/counter.c
+
 $(LIST_PATH)/list.o: $(LIST_PATH)/list.c
+	$(CC) -o $(LIST_PATH)/list.o -c -fPIC $(LIST_PATH)/list.c
+
 $(HASH_PATH)/hash.o: $(HASH_PATH)/hash.c
+	$(CC) -o $(HASH_PATH)/hash.o -c -fPIC $(HASH_PATH)/hash.c
+
 $(TIMING_PATH)/timing.o: $(TIMING_PATH)/timing.c
+	$(CC) -o $(TIMING_PATH)/timing.o -c -fPIC $(TIMING_PATH)/timing.c
 
 clean:
 	-rm $(OBJECTS)
