@@ -10,8 +10,8 @@
 
 list_t list;
 
-void* thread_list_insert(void* arg){
-    int insert_count = *(int*) arg;
+void* thread_list_insert(void* args){
+    int insert_count = *(int*) args;
     for (unsigned int t = 0; t < insert_count; t++){
         list_insert(&list, t);
     }
@@ -45,7 +45,6 @@ void validate_insertion(size_t thread_count, size_t insert_count){
 }
 
 int main(int argc, char* argv[]){
-    list_init(&list);
     if (argc != 3) {
         printf("Usage: ./timing_list_insert [thread_count] [insert_count]");
         return -1;
@@ -53,6 +52,8 @@ int main(int argc, char* argv[]){
 
     size_t thread_count = atoi(argv[1]);
     size_t insert_count = atoi(argv[2]);
+
+    list_init(&list);
 
     double elapsed = timeit(&timing_list_insert, thread_count, &insert_count);
     printf("%lf\n", elapsed);

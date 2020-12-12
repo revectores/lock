@@ -50,6 +50,7 @@ void validate_insertion(size_t thread_count, size_t bucket_count, size_t insert_
 int main(int argc, char* argv[]){
     if (argc != 4){
         printf("Usage: ./timing_hash_insert [thread_count] [bucket_count] [insert_count]");
+        return -1;
     }
 
     size_t thread_count = atoi(argv[1]);
