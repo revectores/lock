@@ -1,7 +1,7 @@
 # LOCK_IMPL = spinlock
 # LOCK_IMPL = pthread_mutex
-LOCK_IMPL = yield_mutex
-# LOCK_IMPL = futex_mutex
+# LOCK_IMPL = yield_mutex
+LOCK_IMPL = futex_mutex
 
 
 LOCK_PATH = lock/$(LOCK_IMPL)
